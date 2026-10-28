@@ -1,0 +1,48 @@
+name: Deploy selected commit
+run-name: Deploy ${{ inputs.deploy_ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_ref:
+        description: Branch, tag, or full commit SHA to deploy
+        required: true
+        type: string
+      source_path:
+        description: Repository subdirectory to deploy (submodules must be deployed from their own repositories)
+        required: true
+        type: string
+      deploy_host:
+        description: SSH host
+        required: true
+        type: string
+      deploy_port:
+        description: SSH port
+        required: true
+        type: string
+        default: "22"
+      deploy_user:
+        description: SSH user
+        required: true
+        type: string
+      deploy_path:
+        description: Absolute destination directory on the server
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-ref-rsync.yml
+    with:
+      deploy_ref: ${{ inputs.deploy_ref }}
+      source_path: ${{ inputs.source_path }}
+      deploy_host: ${{ inputs.deploy_host }}
+      deploy_port: ${{ inputs.deploy_port }}
+      deploy_user: ${{ inputs.deploy_user }}
+      deploy_path: ${{ inputs.deploy_path }}
+    secrets:
+      ssh_private_key: ${{ secrets.SERVER_SSH_KEY }}
+      ssh_known_hosts: ${{ secrets.SERVER_KNOWN_HOSTS }}

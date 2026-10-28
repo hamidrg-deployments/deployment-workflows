@@ -85,7 +85,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          [[ "$SOURCE_PATH" != /* ]] || { echo "source_path must be relative to the repository" >&2; exit 1; }
           test -d "$SOURCE_PATH" || { echo "$SOURCE_PATH does not exist" >&2; exit 1; }
+          source_root="$(realpath -e -- "$SOURCE_PATH")"
+          [[ "$source_root" == "$(pwd -P)/"* ]] || { echo "source_path must be a repository subdirectory" >&2; exit 1; }
+          if git ls-files --stage -- "$SOURCE_PATH" | awk '$1 == "160000" {found=1} END {exit !found}'; then
+            echo "Deploy submodule repositories directly; source_path contains a git submodule" >&2
+            exit 1
+          fi
           deploy_sha="$(git rev-parse HEAD)"
           printf 'sha=%s\n' "$deploy_sha" >> "$GITHUB_OUTPUT"
           printf 'Deploying commit %s\n' "$deploy_sha"
