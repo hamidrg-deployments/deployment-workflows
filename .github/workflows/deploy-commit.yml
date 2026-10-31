@@ -13,17 +13,17 @@ on:
         required: true
         type: string
       deploy_host:
-        description: SSH host
-        required: true
+        description: Fallback SSH host when DEPLOY_HOST is unset
+        required: false
         type: string
       deploy_port:
-        description: SSH port
-        required: true
+        description: Fallback SSH port when DEPLOY_PORT is unset
+        required: false
         type: string
         default: "22"
       deploy_user:
-        description: SSH user
-        required: true
+        description: Fallback SSH user when DEPLOY_USER is unset
+        required: false
         type: string
       deploy_path:
         description: Absolute destination directory on the server
@@ -39,9 +39,9 @@ jobs:
     with:
       deploy_ref: ${{ inputs.deploy_ref }}
       source_path: ${{ inputs.source_path }}
-      deploy_host: ${{ inputs.deploy_host }}
-      deploy_port: ${{ inputs.deploy_port }}
-      deploy_user: ${{ inputs.deploy_user }}
+      deploy_host: ${{ vars.DEPLOY_HOST || inputs.deploy_host }}
+      deploy_port: ${{ vars.DEPLOY_PORT || inputs.deploy_port || '22' }}
+      deploy_user: ${{ vars.DEPLOY_USER || inputs.deploy_user }}
       deploy_path: ${{ inputs.deploy_path }}
     secrets:
       ssh_private_key: ${{ secrets.SERVER_SSH_KEY }}

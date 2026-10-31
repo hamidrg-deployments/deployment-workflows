@@ -27,6 +27,9 @@ jobs:
 
     env:
       DEPLOYMENTS_JSON: ${{ inputs.deployments_json }}
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
 
     steps:
       - name: Checkout
@@ -64,9 +67,9 @@ jobs:
           while IFS= read -r deployment; do
             source_path="$(jq -er '.source_path' <<<"$deployment")"
             deploy_path="$(jq -er '.deploy_path' <<<"$deployment")"
-            deploy_host="$(jq -er '.deploy_host' <<<"$deployment")"
-            deploy_port="$(jq -er '.deploy_port // "22"' <<<"$deployment")"
-            deploy_user="$(jq -er '.deploy_user' <<<"$deployment")"
+            deploy_host="${DEPLOY_HOST:-$(jq -er '.deploy_host' <<<"$deployment")}"
+            deploy_port="${DEPLOY_PORT:-$(jq -er '.deploy_port // "22"' <<<"$deployment")}"
+            deploy_user="${DEPLOY_USER:-$(jq -er '.deploy_user' <<<"$deployment")}"
 
             test -d "$source_path" || { echo "$source_path does not exist" >&2; exit 1; }
             mkdir -p "$server_snapshot/$source_path"
@@ -106,9 +109,9 @@ jobs:
           while IFS= read -r deployment; do
             source_path="$(jq -er '.source_path' <<<"$deployment")"
             deploy_path="$(jq -er '.deploy_path' <<<"$deployment")"
-            deploy_host="$(jq -er '.deploy_host' <<<"$deployment")"
-            deploy_port="$(jq -er '.deploy_port // "22"' <<<"$deployment")"
-            deploy_user="$(jq -er '.deploy_user' <<<"$deployment")"
+            deploy_host="${DEPLOY_HOST:-$(jq -er '.deploy_host' <<<"$deployment")}"
+            deploy_port="${DEPLOY_PORT:-$(jq -er '.deploy_port // "22"' <<<"$deployment")}"
+            deploy_user="${DEPLOY_USER:-$(jq -er '.deploy_user' <<<"$deployment")}"
 
             rsync --archive --compress --itemize-changes \
               --exclude='.git/' \
