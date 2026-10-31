@@ -1,5 +1,9 @@
 # Shared deployment workflows
 
+## Line endings
+
+Repositories using these workflows include a root `.gitattributes` file that marks PHP, workflow, shell, PowerShell, JSON, and YAML files as text with LF line endings. This keeps diffs stable across Windows and Linux checkouts and prevents CRLF-only changes from appearing in deployment commits. Existing files are normalized when their repository next performs a deliberate renormalization; future checkouts and edits use LF.
+
 ## SSH connection variables
 
 Set `DEPLOY_HOST`, `DEPLOY_USER`, and `DEPLOY_PORT` under **Settings → Secrets and variables → Actions → Variables** in the calling repository, or as organization variables available to that repository. Each variable overrides only its corresponding connection setting. Missing or empty variables fall back to the workflow's existing host, user, and port; reusable workflows fall back to their inputs or each `deployments_json` mapping, with port `22` when no port is supplied.
