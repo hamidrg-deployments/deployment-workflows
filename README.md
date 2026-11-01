@@ -1,5 +1,34 @@
 # Shared deployment workflows
 
+## Repository settings (v1.7.0)
+
+The four single-directory workflows (`deploy-rsync.yml`, `deploy-ref-rsync.yml`,
+`snapshot-rsync.yml`, and `revert-rsync.yml`) read `DEPLOY_HOST`, `DEPLOY_PORT`,
+`DEPLOY_USER`, and `DEPLOY_PATH` from the calling repository's Actions variables.
+Port defaults to 22. Configure `SERVER_SSH_KEY` and `SERVER_KNOWN_HOSTS` as Actions
+secrets and pass them with `secrets: inherit` when both repositories are in the
+same organization. These are the caller's settings, not this repository's settings.
+
+```yaml
+jobs:
+  deploy:
+    uses: hamidrg-deployments/deployment-workflows/.github/workflows/deploy-ref-rsync.yml@v1.7.0
+    with:
+      deploy_ref: ${{ inputs.deploy_ref }}
+      source_path: backend
+    secrets: inherit
+```
+
+Keep the caller's existing triggers and `permissions: contents: write`. For deploy,
+snapshot, or revert, choose the corresponding reusable workflow and omit
+`deploy_ref`. Missing host, user, SSH credentials, or an absolute non-root path
+fails before connecting to the server.
+
+Existing callers can still supply connection inputs and explicitly map
+`ssh_private_key` and `ssh_known_hosts`. Repository variables override their
+corresponding inputs; explicit legacy secret mappings override inherited
+`SERVER_*` secrets. Multi-directory workflows retain their existing contract.
+
 ## Line endings
 
 Repositories using these workflows include a root `.gitattributes` file that marks PHP, workflow, shell, PowerShell, JSON, and YAML files as text with LF line endings. This keeps diffs stable across Windows and Linux checkouts and prevents CRLF-only changes from appearing in deployment commits. Existing files are normalized when their repository next performs a deliberate renormalization; future checkouts and edits use LF.
