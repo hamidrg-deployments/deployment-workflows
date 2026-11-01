@@ -1,7 +1,19 @@
 name: Deploy selected commit
 run-name: Deploy ${{ inputs.deploy_ref }}
-
-on:
+permissions:
+  contents: write
+jobs:
+  deploy:
+    uses: hamidrg-deployments/deployment-workflows/.github/workflows/deploy-ref-rsync.yml@v1.7.0
+    with:
+      deploy_ref: ${{ inputs.deploy_ref }}
+      source_path: ${{ inputs.source_path }}
+      deploy_host: ${{ inputs.deploy_host }}
+      deploy_port: ${{ inputs.deploy_port }}
+      deploy_user: ${{ inputs.deploy_user }}
+      deploy_path: ${{ inputs.deploy_path }}
+    secrets: inherit
+'on':
   workflow_dispatch:
     inputs:
       deploy_ref:
@@ -20,7 +32,7 @@ on:
         description: Fallback SSH port when DEPLOY_PORT is unset
         required: false
         type: string
-        default: "22"
+        default: '22'
       deploy_user:
         description: Fallback SSH user when DEPLOY_USER is unset
         required: false
@@ -29,20 +41,3 @@ on:
         description: Absolute destination directory on the server
         required: true
         type: string
-
-permissions:
-  contents: write
-
-jobs:
-  deploy:
-    uses: ./.github/workflows/deploy-ref-rsync.yml
-    with:
-      deploy_ref: ${{ inputs.deploy_ref }}
-      source_path: ${{ inputs.source_path }}
-      deploy_host: ${{ vars.DEPLOY_HOST || inputs.deploy_host }}
-      deploy_port: ${{ vars.DEPLOY_PORT || inputs.deploy_port || '22' }}
-      deploy_user: ${{ vars.DEPLOY_USER || inputs.deploy_user }}
-      deploy_path: ${{ inputs.deploy_path }}
-    secrets:
-      ssh_private_key: ${{ secrets.SERVER_SSH_KEY }}
-      ssh_known_hosts: ${{ secrets.SERVER_KNOWN_HOSTS }}
