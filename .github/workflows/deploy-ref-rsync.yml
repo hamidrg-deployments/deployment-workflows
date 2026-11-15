@@ -162,7 +162,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rsync --archive --compress --itemize-changes \
+          rsync --archive --compress --delete --itemize-changes \
             --exclude='.git/' \
             --exclude='.env' \
             --rsh="ssh -p $DEPLOY_PORT" \
