@@ -4,7 +4,7 @@ permissions:
   contents: write
 jobs:
   deploy:
-    uses: hamidrg-deployments/deployment-workflows/.github/workflows/deploy-ref-rsync.yml@v1.7.0
+    uses: hamidrg-deployments/deployment-workflows/.github/workflows/deploy-ref-rsync.yml@v1.9.0
     with:
       deploy_ref: ${{ inputs.deploy_ref }}
       source_path: ${{ inputs.source_path }}
