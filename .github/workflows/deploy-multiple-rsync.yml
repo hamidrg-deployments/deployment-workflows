@@ -82,7 +82,12 @@ jobs:
             source_paths+=("$source_path")
           done < <(jq -c '.[]' <<<"$DEPLOYMENTS_JSON")
 
-          git worktree add --detach "$snapshot_worktree" "$GITHUB_SHA"
+          # Continue the snapshot branch so every deployment remains in its history.
+          snapshot_base="$GITHUB_SHA"
+          if git fetch --no-tags origin refs/heads/snapshot:refs/remotes/origin/snapshot; then
+            snapshot_base="refs/remotes/origin/snapshot"
+          fi
+          git worktree add --detach "$snapshot_worktree" "$snapshot_base"
           for source_path in "${source_paths[@]}"; do
             rsync --archive --delete \
               --exclude='.env' \
@@ -96,7 +101,7 @@ jobs:
           git -C "$snapshot_worktree" add -A -- "${source_paths[@]}"
           git -C "$snapshot_worktree" commit --allow-empty \
             -m "Snapshot server before deploying ${GITHUB_SHA}"
-          git -C "$snapshot_worktree" push --force origin \
+          git -C "$snapshot_worktree" push origin \
             "HEAD:refs/heads/snapshot"
 
           git worktree remove --force "$snapshot_worktree"

@@ -51,7 +51,7 @@ The manual actions in this repository and `kasb-center` accept optional SSH host
 
 ## Deploy a selected branch or commit
 
-Use `.github/workflows/deploy-ref-rsync.yml@v1.5.0` to deploy a branch, tag, or full commit SHA from the calling repository. It snapshots the live server to the `snapshot` branch before deploying, uses the same concurrency group as the standard single-directory deployment, and returns the resolved commit as the `deployed_sha` output and in the run summary. An invalid ref or missing source directory fails before accessing the server.
+Use `.github/workflows/deploy-ref-rsync.yml@v1.5.0` to deploy a branch, tag, or full commit SHA from the calling repository. It snapshots the live server to the `snapshot` branch before deploying, appending each snapshot to that branch's history, uses the same concurrency group as the standard single-directory deployment, and returns the resolved commit as the `deployed_sha` output and in the run summary. An invalid ref or missing source directory fails before accessing the server.
 
 Add this manual workflow to the application repository's default branch, replacing the example server and directory settings:
 

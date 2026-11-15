@@ -24,6 +24,11 @@ on:
         description: Repository directory where the snapshot is stored
         required: true
         type: string
+      snapshot_branch:
+        description: Branch that stores the live server snapshots
+        required: false
+        default: snapshot
+        type: string
     secrets:
       ssh_private_key:
         required: false
@@ -38,7 +43,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: snapshot-${{ github.repository }}-${{ vars.DEPLOY_PATH || inputs.deploy_path }}
+  group: deploy-${{ github.repository }}-${{ vars.DEPLOY_PATH || inputs.deploy_path }}
   cancel-in-progress: false
 
 jobs:
@@ -52,6 +57,7 @@ jobs:
       DEPLOY_USER: ${{ vars.DEPLOY_USER || inputs.deploy_user }}
       DEPLOY_PATH: ${{ vars.DEPLOY_PATH || inputs.deploy_path }}
       SOURCE_PATH: ${{ inputs.source_path }}
+      SNAPSHOT_BRANCH: ${{ inputs.snapshot_branch }}
 
     steps:
       - name: Checkout current repository
@@ -93,7 +99,12 @@ jobs:
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/" \
             "$server_snapshot/$SOURCE_PATH/"
 
-          git worktree add --detach "$snapshot_worktree" "$GITHUB_SHA"
+          # Continue the snapshot branch so every manual snapshot remains in its history.
+          snapshot_base="$GITHUB_SHA"
+          if git fetch --no-tags origin "refs/heads/$SNAPSHOT_BRANCH:refs/remotes/origin/$SNAPSHOT_BRANCH"; then
+            snapshot_base="refs/remotes/origin/$SNAPSHOT_BRANCH"
+          fi
+          git worktree add --detach "$snapshot_worktree" "$snapshot_base"
           rsync --archive --delete \
             --exclude='.env' \
             "$server_snapshot/$SOURCE_PATH/" \
@@ -105,7 +116,7 @@ jobs:
           git -C "$snapshot_worktree" add -A -- "$SOURCE_PATH"
           git -C "$snapshot_worktree" commit --allow-empty \
             -m "Snapshot live server before manual changes"
-          git -C "$snapshot_worktree" push --force origin \
-            "HEAD:refs/heads/snapshot"
+          git -C "$snapshot_worktree" push origin \
+            "HEAD:refs/heads/$SNAPSHOT_BRANCH"
 
           git worktree remove --force "$snapshot_worktree"

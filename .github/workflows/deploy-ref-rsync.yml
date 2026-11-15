@@ -137,7 +137,12 @@ jobs:
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/" \
             "$server_snapshot/$SOURCE_PATH/"
 
-          git worktree add --detach "$snapshot_worktree" "$DEPLOY_SHA"
+          # Continue the snapshot branch so every deployment remains in its history.
+          snapshot_base="$DEPLOY_SHA"
+          if git fetch --no-tags origin "refs/heads/$SNAPSHOT_BRANCH:refs/remotes/origin/$SNAPSHOT_BRANCH"; then
+            snapshot_base="refs/remotes/origin/$SNAPSHOT_BRANCH"
+          fi
+          git worktree add --detach "$snapshot_worktree" "$snapshot_base"
           rsync --archive --delete \
             --exclude='.env' \
             "$server_snapshot/$SOURCE_PATH/" \
@@ -149,7 +154,7 @@ jobs:
           git -C "$snapshot_worktree" add -A -- "$SOURCE_PATH"
           git -C "$snapshot_worktree" commit --allow-empty \
             -m "Snapshot server before deploying ${DEPLOY_SHA}"
-          git -C "$snapshot_worktree" push --force origin \
+          git -C "$snapshot_worktree" push origin \
             "HEAD:refs/heads/$SNAPSHOT_BRANCH"
           git worktree remove --force "$snapshot_worktree"
 
