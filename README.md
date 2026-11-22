@@ -29,6 +29,19 @@ Existing callers can still supply connection inputs and explicitly map
 corresponding inputs; explicit legacy secret mappings override inherited
 `SERVER_*` secrets. Multi-directory workflows retain their existing contract.
 
+The single-directory deployment, selected-ref deployment, snapshot, and revert
+workflows also accept `deploy_path_override`. This explicit path takes
+precedence over the repository-level `DEPLOY_PATH` variable, which allows one
+caller workflow to deploy to multiple server directories without changing the
+repository variable.
+
+The deployment workflows accept optional `source_replace_from` and
+`source_replace_to` inputs. When both are supplied, the workflow copies the
+source directory to a temporary location, performs a literal replacement in
+text files, and rsyncs the transformed copy. The checked-out source and the
+caller repository are not modified. Snapshots continue to store the live
+server contents at the logical `source_path`.
+
 ## Line endings
 
 Repositories using these workflows include a root `.gitattributes` file that marks PHP, workflow, shell, PowerShell, JSON, and YAML files as text with LF line endings. This keeps diffs stable across Windows and Linux checkouts and prevents CRLF-only changes from appearing in deployment commits. Existing files are normalized when their repository next performs a deliberate renormalization; future checkouts and edits use LF.

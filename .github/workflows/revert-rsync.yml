@@ -20,9 +20,18 @@ on:
         description: Fallback absolute server directory when DEPLOY_PATH is unset
         required: false
         type: string
+      deploy_path_override:
+        description: Explicit absolute server directory that overrides DEPLOY_PATH
+        required: false
+        type: string
       source_path:
         description: Repository directory to restore from snapshot
         required: true
+        type: string
+      snapshot_branch:
+        description: Branch that stores the snapshot to restore
+        required: false
+        default: snapshot
         type: string
     secrets:
       ssh_private_key:
@@ -38,7 +47,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: revert-${{ github.repository }}-${{ vars.DEPLOY_PATH || inputs.deploy_path }}
+  group: revert-${{ github.repository }}-${{ inputs.deploy_path_override || vars.DEPLOY_PATH || inputs.deploy_path }}
   cancel-in-progress: false
 
 jobs:
@@ -50,14 +59,14 @@ jobs:
       DEPLOY_HOST: ${{ vars.DEPLOY_HOST || inputs.deploy_host }}
       DEPLOY_PORT: ${{ vars.DEPLOY_PORT || inputs.deploy_port || '22' }}
       DEPLOY_USER: ${{ vars.DEPLOY_USER || inputs.deploy_user }}
-      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || inputs.deploy_path }}
+      DEPLOY_PATH: ${{ inputs.deploy_path_override || vars.DEPLOY_PATH || inputs.deploy_path }}
       SOURCE_PATH: ${{ inputs.source_path }}
 
     steps:
       - name: Checkout last snapshot
         uses: actions/checkout@v6
         with:
-          ref: snapshot
+          ref: ${{ inputs.snapshot_branch }}
           fetch-depth: 0
 
       - name: Configure SSH

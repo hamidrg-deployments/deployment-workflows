@@ -10,11 +10,13 @@ import textwrap
 root = Path(__file__).resolve().parents[1]
 bash = "C:/Program Files/Git/bin/bash.exe" if os.name == "nt" else shutil.which("bash")
 expression = "$" + "{{ "
+path_expression = expression + "inputs.deploy_path_override || vars.DEPLOY_PATH || inputs.deploy_path }}"
 for name in ("deploy-rsync.yml", "deploy-ref-rsync.yml", "snapshot-rsync.yml", "revert-rsync.yml"):
     source = (root / ".github/workflows" / name).read_text()
-    assert "DEPLOY_PATH: " + expression + "vars.DEPLOY_PATH || inputs.deploy_path }}" in source
-    assert expression + "vars.DEPLOY_PATH || inputs.deploy_path }}" in source.split("concurrency:", 1)[1].split("jobs:", 1)[0]
+    assert "DEPLOY_PATH: " + path_expression in source
+    assert path_expression in source.split("concurrency:", 1)[1].split("jobs:", 1)[0]
     assert "      deploy_path:\n        description: Fallback absolute server directory when DEPLOY_PATH is unset\n        required: false" in source
+    assert "      deploy_path_override:\n        description: Explicit absolute server directory that overrides DEPLOY_PATH\n        required: false" in source
     for legacy, inherited in (("ssh_private_key", "SERVER_SSH_KEY"), ("ssh_known_hosts", "SERVER_KNOWN_HOSTS")):
         assert expression + f"secrets.{legacy} || secrets.{inherited}" + " }}" in source
         for secret in (legacy, inherited):

@@ -20,6 +20,10 @@ on:
         description: Fallback absolute server directory when DEPLOY_PATH is unset
         required: false
         type: string
+      deploy_path_override:
+        description: Explicit absolute server directory that overrides DEPLOY_PATH
+        required: false
+        type: string
       source_path:
         description: Repository directory where the snapshot is stored
         required: true
@@ -43,7 +47,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: deploy-${{ github.repository }}-${{ vars.DEPLOY_PATH || inputs.deploy_path }}
+  group: deploy-${{ github.repository }}-${{ inputs.deploy_path_override || vars.DEPLOY_PATH || inputs.deploy_path }}
   cancel-in-progress: false
 
 jobs:
@@ -55,7 +59,7 @@ jobs:
       DEPLOY_HOST: ${{ vars.DEPLOY_HOST || inputs.deploy_host }}
       DEPLOY_PORT: ${{ vars.DEPLOY_PORT || inputs.deploy_port || '22' }}
       DEPLOY_USER: ${{ vars.DEPLOY_USER || inputs.deploy_user }}
-      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || inputs.deploy_path }}
+      DEPLOY_PATH: ${{ inputs.deploy_path_override || vars.DEPLOY_PATH || inputs.deploy_path }}
       SOURCE_PATH: ${{ inputs.source_path }}
       SNAPSHOT_BRANCH: ${{ inputs.snapshot_branch }}
 
